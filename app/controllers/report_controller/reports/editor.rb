@@ -759,7 +759,7 @@ module ReportController::Reports::Editor
         sort, suffix = @edit[:new][:sortby1].split("__")
         @edit[:new][:col_options][sort1][:break_label] =
           @edit[:new][:field_order].collect { |f| f.first if f.last == sort }.compact.join.strip +
-          (suffix ? " (%{suffixes})" % {:suffixes => MiqReport.date_time_break_suffixes.collect { |s| s.first if s.last == suffix }.compact.join} : "") +
+          (suffix ? " (%{suffixes})" % {:suffixes => MiqReport.date_time_break_suffixes.collect { |s| _(s.first) if s.last == suffix }.compact.join} : "") +
           ": "
       end
     end
@@ -1374,7 +1374,7 @@ module ReportController::Reports::Editor
   end
 
   def entries_hash(category_name)
-    cat = Classification.find_by_name(category_name)
+    cat = Classification.lookup_by_name(category_name)
     return {} unless cat
     cat.entries.each_with_object({}) { |e, h| h[e.name] = e.description }
   end

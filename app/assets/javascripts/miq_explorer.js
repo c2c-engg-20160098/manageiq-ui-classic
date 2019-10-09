@@ -1,5 +1,5 @@
 /* global miqAccordionSwap miqAddNodeChildren miqAsyncAjax miqBuildCalendar miqButtons miqDeleteTreeCookies miqDomElementExists miqExpandParentNodes miqInitDashboardCols
- * miqInitAccordions miqInitMainContent miqInitToolbars miqRemoveNodeChildren miqSparkle miqSparkleOff miqTreeActivateNode miqTreeActivateNodeSilently miqTreeFindNodeByKey miqTreeObject load_c3_charts miqGtlSetExtraClasses */
+ * miqInitAccordions miqInitMainContent miqRemoveNodeChildren miqSparkle miqSparkleOff miqTreeActivateNode miqTreeActivateNodeSilently miqTreeFindNodeByKey miqTreeObject load_c3_charts miqGtlSetExtraClasses */
 ManageIQ.explorer = {};
 
 ManageIQ.explorer.updateElement = function(element, options) {
@@ -75,6 +75,7 @@ ManageIQ.explorer.processReplaceMainDiv = function(data) {
   ManageIQ.explorer.updateRightCellText(data);
   ManageIQ.explorer.updatePartials(data);
   ManageIQ.explorer.setVisibility(data);
+  ManageIQ.explorer.resetReduxForms();
 };
 
 ManageIQ.explorer.processFlash = function(data) {
@@ -110,7 +111,6 @@ ManageIQ.explorer.updatePartials = function(data) {
       if (!miqDomElementExists(element)) {
         console.error('updatePartials: #' + element + ' does not exist in the DOM');
       }
-
       $('#' + element).html(content);
     });
   }
@@ -119,6 +119,12 @@ ManageIQ.explorer.updatePartials = function(data) {
 ManageIQ.explorer.reloadTrees = function(data) {
   if (_.isObject(data.reloadTrees)) {
     sendDataWithRx({reloadTrees: data.reloadTrees});
+  }
+};
+
+ManageIQ.explorer.resetReduxForms = function() {
+  if (ManageIQ.redux.store) {
+    ManageIQ.redux.store.dispatch({type: '@@data-driven-forms/reset'});
   }
 };
 
@@ -290,7 +296,6 @@ ManageIQ.explorer.processReplaceRightCell = function(data) {
     _.forEach(data.reloadToolbars, function(content, element) {
       $('#' + element).html(content);
     });
-    miqInitToolbars();
   }
 
   ManageIQ.record = data.record;
@@ -305,9 +310,6 @@ ManageIQ.explorer.processReplaceRightCell = function(data) {
     load_c3_charts();
   }
 
-  if (data.resetChanges) {
-    ManageIQ.changes = null;
-  }
   if (data.resetOneTrans) {
     ManageIQ.oneTransition.oneTrans = 0;
   }
@@ -340,6 +342,8 @@ ManageIQ.explorer.processReplaceRightCell = function(data) {
   } else {
     miqSparkleOff();
   }
+
+  ManageIQ.explorer.resetReduxForms();
 
   return null;
 };

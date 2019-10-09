@@ -8,7 +8,6 @@ $navbar-pf-vertical-border-color:           #3c69a3;  // sets 3px border color a
 $navbar-pf-alt-bg-color:                    #3c69a3;  // sets background color of navigation bar
 $nav-pf-vertical-width:                     225px;    // sets width of primary navigation
 $navbar-pf-alt-navbar-toggle-icon-bar-hover-bg: #fff;
-$img-bg-navbar:                             "layout/navbar.png"; // sets a custom background image in the header
 $color-success:                             #3f9c35;
 $color-warning:                             #ec7a08;
 $color-critical:                            #cc0000;
@@ -35,13 +34,7 @@ $login-container-details-border-color-rgba: rgba(0, 0, 0, 0.5);
 @import "icon_customizations";
 @import "header_background"; // sets a custom background image in the header
 @import "about_modal_background"; // sets a custom background image in the 'About' modal
-@import "timeline"; // used for the patternfly-timeline styles
 @import "alerts";
-@import "graphql_explorer";
-@import "dual_list";
-@import "codemirror_editor";
-@import "dynamic_prefix_form_input";
-@import "report-data-table";
 
 .login-pf #brand img { // sets size of brand.svg on login screen (upstream only)
   height: 38px;

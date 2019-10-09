@@ -135,7 +135,7 @@ class ServiceController < ApplicationController
     case params[:button]
     when "cancel"
       service = find_record_with_rbac(Service, params[:id])
-      add_flash(_("Edit of Service \"%{name}\" was cancelled by the user") % {:name => service.description})
+      add_flash(_("Edit of Service \"%{name}\" was cancelled by the user") % {:name => service.name})
       replace_right_cell
     when "save", "add"
       service = find_record_with_rbac(Service, params[:id])
@@ -478,9 +478,6 @@ class ServiceController < ApplicationController
     presenter.set_visibility(!(@record || @in_a_form), :adv_searchbox_div)
     presenter[:clear_search_toggle] = clear_search_status
 
-    # unset variable that was set in form_field_changed to prompt for changes when leaving the screen
-    presenter.reset_changes
-
     presenter.update(:breadcrumbs, r[:partial => 'layouts/breadcrumbs'])
 
     render :json => presenter.for_render
@@ -524,11 +521,20 @@ class ServiceController < ApplicationController
     {
       :breadcrumbs => [
         {:title => _("Services")},
-        {:title => _("My services")},
+        {:title => _("My services"), :url => (url_for(:action => 'explorer', :controller => controller_name) if generic_objects_list?)},
       ],
-      :record_info => @service,
+      :record_info => (hide_record_info? ? {} : @service),
       :ancestry    => Service,
+      :not_tree    => generic_objects_list?,
     }
+  end
+
+  def generic_objects_list?
+    params[:display] == 'generic_objects'
+  end
+
+  def hide_record_info?
+    generic_objects_list? && !params[:generic_object_id]
   end
 
   menu_section :svc

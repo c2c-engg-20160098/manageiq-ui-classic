@@ -38,6 +38,7 @@ class ApplicationController < ActionController::Base
   include Mixins::CheckedIdMixin
   include ParamsHelper
   include ApplicationHelper::Toolbar::Mixins::CustomButtonToolbarMixin
+  include QuadiconHelper
 
   helper ToolbarHelper
   helper JsHelper
@@ -97,7 +98,6 @@ class ApplicationController < ActionController::Base
 
   # Default UI settings
   DEFAULT_SETTINGS = {
-    :quadicons => Hash.new(true), # Show quad icons by resource type, true by default
     :views     => { # List view setting, by resource type
       :authkeypaircloud                                                       => "list",
       :availabilityzone                                                       => "list",

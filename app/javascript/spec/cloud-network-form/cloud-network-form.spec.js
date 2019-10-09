@@ -1,11 +1,12 @@
 import React from 'react';
-import { mount, shallow } from 'enzyme';
 import toJson from 'enzyme-to-json';
 import fetchMock from 'fetch-mock';
 import CloudNetworkForm from '../../components/cloud-network-form/cloud-network-form';
 import '../helpers/miqSparkle';
 import '../helpers/miqAjaxButton';
 import * as networkModule from '../../helpers/network-providers';
+import { mount } from '../helpers/mountForm';
+import {shallow } from 'enzyme';
 
 jest.mock('../../helpers/miq-redirect-back', () => jest.fn());
 
@@ -20,6 +21,13 @@ describe('Cloud Network form component', () => {
     { href: 'http://localhost:3000/api/providers/50', id: '50', name: 'Provider 50' },
     { href: 'http://localhost:3000/api/providers/18', id: '18', name: 'Provider 18' },
     { href: 'http://localhost:3000/api/providers/39', id: '39', name: 'Provider 39' }];
+
+  const tenantsMock = {
+    resources: [
+      { href: 'http://localhost:3000/api/providers/8/cloud_tenants/1', id: '1', name: 'cloud-user-demo' },
+      { href: 'http://localhost:3000/api/providers/8/cloud_tenants/2', id: '2', name: 'admin' },
+    ],
+  };
 
   const networkMock = {
     href: 'http://localhost:3000/api/cloud_networks/50',
@@ -84,16 +92,16 @@ describe('Cloud Network form component', () => {
 
   describe('componentDidMount', () => {
     it('should set add variant initialValues', (done) => {
-      const wrapper = shallow(<CloudNetworkForm />);
+      const wrapper = mount(<CloudNetworkForm />);
 
       setImmediate(() => {
         wrapper.update();
-        expect(wrapper.instance().state.initialValues).toEqual({
+        expect(wrapper.children().instance().state.initialValues).toEqual({
           enabled: true,
           external_facing: false,
           shared: false,
         });
-        expect(wrapper.instance().state.ems).toEqual([
+        expect(wrapper.children().instance().state.ems).toEqual([
           { name: `<${__('Choose')}>` },
           { href: 'http://localhost:3000/api/providers/4', id: '4', name: 'Provider 4' },
           { href: 'http://localhost:3000/api/providers/31', id: '31', name: 'Provider 31' },
@@ -102,27 +110,29 @@ describe('Cloud Network form component', () => {
           { href: 'http://localhost:3000/api/providers/18', id: '18', name: 'Provider 18' },
           { href: 'http://localhost:3000/api/providers/39', id: '39', name: 'Provider 39' },
         ]);
-        expect(wrapper.instance().state.isLoading).toEqual(false);
+        expect(wrapper.children().instance().state.isLoading).toEqual(false);
         done();
       });
     });
 
     it('should set edit variant initialValues', (done) => {
       fetchMock.getOnce('/api/cloud_networks/1?attributes=cloud_tenant.id,cloud_tenant.name,ext_management_system.name', networkMock);
-      const wrapper = shallow(<CloudNetworkForm cloudNetworkId="1" />);
+      fetchMock.getOnce('/api/providers/8/cloud_tenants?expand=resources&attributes=id,name', tenantsMock);
+
+      const wrapper = mount(<CloudNetworkForm cloudNetworkId="1" />);
 
       setImmediate(() => {
         wrapper.update();
-        expect(wrapper.instance().state.initialValues).toEqual({
+        expect(wrapper.children().instance().state.initialValues).toEqual({
           ...networkMock,
           cloud_tenant: '2',
         });
-        expect(wrapper.instance().state.ems).toEqual([{
+        expect(wrapper.children().instance().state.ems).toEqual([{
           id: '8',
           name: 'OpenStack Network Manager',
         }]);
-        expect(wrapper.instance().state.isLoading).toEqual(false);
-        expect(wrapper.instance().state.cloudTenantName).toEqual('admin');
+        expect(wrapper.children().instance().state.isLoading).toEqual(false);
+        expect(wrapper.children().instance().state.cloudTenantName).toEqual('admin');
         done();
       });
     });
@@ -143,11 +153,13 @@ describe('Cloud Network form component', () => {
 
     it('when editing', (done) => {
       fetchMock.getOnce('/api/cloud_networks/1?attributes=cloud_tenant.id,cloud_tenant.name,ext_management_system.name', networkMock);
-      const wrapper = shallow(<CloudNetworkForm cloudNetworkId="1" />);
+      fetchMock.getOnce('/api/providers/8/cloud_tenants?expand=resources&attributes=id,name', tenantsMock);
+
+      const wrapper = mount(<CloudNetworkForm cloudNetworkId="1" />);
 
       setImmediate(() => {
         wrapper.update();
-        wrapper.instance().cancelClicked();
+        wrapper.children().instance().cancelClicked();
         expect(spyMiqAjaxButton).toHaveBeenCalledWith('/cloud_network/update/1?button=cancel');
         done();
       });
@@ -167,7 +179,7 @@ describe('Cloud Network form component', () => {
 
       setImmediate(() => {
         wrapper.update();
-        wrapper.instance().saveClicked({
+        wrapper.children().instance().saveClicked({
           enabled: true,
           external_facing: false,
           shared: false,
@@ -184,11 +196,13 @@ describe('Cloud Network form component', () => {
         cloud_tenant: { id: '2', name: 'admin' },
       };
       fetchMock.getOnce('/api/cloud_networks/1?attributes=cloud_tenant.id,cloud_tenant.name,ext_management_system.name', networkMock);
-      const wrapper = shallow(<CloudNetworkForm cloudNetworkId="1" />);
+      fetchMock.getOnce('/api/providers/8/cloud_tenants?expand=resources&attributes=id,name', tenantsMock);
+
+      const wrapper = mount(<CloudNetworkForm cloudNetworkId="1" />);
 
       setImmediate(() => {
         wrapper.update();
-        wrapper.instance().saveClicked({
+        wrapper.children().instance().saveClicked({
           ...networkMock,
           cloud_tenant: '2',
         });

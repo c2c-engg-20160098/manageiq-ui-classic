@@ -94,6 +94,25 @@ describe OpsController do
         controller.send(:rbac_tenant_get_details, t.id)
         expect(assigns(:tenant)).to eq(t)
       end
+
+      context "user is using tag filtering" do
+        let(:user) { FactoryBot.create(:user, :miq_groups => [group]) }
+        let(:group) { FactoryBot.create(:miq_group, :tenant => other_tenant) }
+        let!(:other_tenant) { FactoryBot.create(:tenant, :parent => Tenant.root_tenant) }
+
+        before do
+          group.entitlement = Entitlement.new
+          group.entitlement.set_belongsto_filters([])
+          group.entitlement.set_managed_filters([['/managed/environment/prod']])
+          group.save!
+
+          login_as user
+        end
+
+        it "raises error when access is not granted" do
+          expect { controller.send(:rbac_tenant_get_details, other_tenant.id) }.to raise_error(ActiveRecord::RecordNotFound, "Can't access selected records")
+        end
+      end
     end
 
     describe "#rbac_tenant_delete" do
@@ -727,13 +746,13 @@ describe OpsController do
         let(:params) { {:id => "new", :group_tenant => tenant.id.to_s} }
         let(:edit) { {:new => {:role => 1}} }
 
-        it 'sets session[:changed] to false while filling in role and tenant' do
+        it 'sets session[:changed] to true while filling in role and tenant' do
           controller.send(:rbac_field_changed, rec_type)
-          expect(controller.session[:changed]).to be(false)
+          expect(controller.session[:changed]).to be(true)
         end
 
-        context 'filling in all the required info' do
-          let(:edit) { {:new => {:role => 1, :description => 'new_group'}} }
+        context 'filling in description' do
+          let(:edit) { {:new => {:description => 'new_group'}} }
 
           it 'sets session[:changed] to true' do
             controller.send(:rbac_field_changed, rec_type)
@@ -803,6 +822,25 @@ describe OpsController do
     it "returns true because user is current user" do
       User.with_user(other_user) do
         expect(controller.send(:rbac_user_delete_restriction?, other_user)).to be_truthy
+      end
+    end
+  end
+
+  describe '#rbac_edit_save_or_add' do
+    context 'adding new Group' do
+      before do
+        allow(controller).to receive(:load_edit).and_return(true)
+        allow(controller).to receive(:render_flash)
+        controller.instance_variable_set(:@edit, :new => {:description           => 'Description',
+                                                          :filters               => {},
+                                                          :filter_expression     => {'???' => '???'},
+                                                          :use_filter_expression => false})
+        controller.params = {:button => 'add'}
+      end
+
+      it 'sets @flash_array properly if user forgot to choose a Role for a Group' do
+        controller.send(:rbac_edit_save_or_add, 'group')
+        expect(controller.instance_variable_get(:@flash_array)).to eq([{:message => 'A Role must be assigned to this Group', :level => :error}])
       end
     end
   end
