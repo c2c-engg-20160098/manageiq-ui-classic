@@ -9,6 +9,7 @@ class ApplicationHelper::Button::ProviderUserSync < ApplicationHelper::Button::B
     # current_group attribute set to nil. Users cannot login if
     # they do not have a current group. Therefore user sync is
     # a noop if tenant mapping is not enabled.
-    @record.class == ManageIQ::Providers::Openstack::CloudManager && @record.tenant_mapping_enabled == true
+    # C2C: Added condition for OTC cloud provider
+    (@record.class == ManageIQ::Providers::Openstack::CloudManager || @record.class == ManageIQ::Providers::Otc::CloudManager) && @record.tenant_mapping_enabled == true
   end
 end

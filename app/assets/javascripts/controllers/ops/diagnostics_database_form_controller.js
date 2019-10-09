@@ -1,6 +1,7 @@
 ManageIQ.angular.app.controller('diagnosticsDatabaseFormController', ['$http', '$scope', '$attrs', 'miqService', 'miqDBBackupService', function($http, $scope, $attrs, miqService, miqDBBackupService) {
   var vm = this;
   var init = function() {
+    // C2C: Added condition for OTC cloud provider - otc_region project_name
     vm.diagnosticsDatabaseModel = {
       action_typ: 'db_backup',
       backup_schedule_type: '',
@@ -12,6 +13,8 @@ ManageIQ.angular.app.controller('diagnosticsDatabaseFormController', ['$http', '
       log_password: '',
       log_aws_region: '',
       openstack_region: '',
+      otc_region: '',
+      project_name: '',
       keystone_api_version: '',
       v3_domain_ident: '',
       swift_api_port: 5000,
@@ -32,6 +35,7 @@ ManageIQ.angular.app.controller('diagnosticsDatabaseFormController', ['$http', '
     miqService.validateWithAjax(vm.validateUrl);
   };
 
+  // C2C: Added condition for OTC cloud provider - otc_region project_name
   vm.backupScheduleTypeChanged = function() {
     if (vm.diagnosticsDatabaseModel.backup_schedule_type === '') {
       vm.diagnosticsDatabaseModel.depot_name = '';
@@ -42,6 +46,8 @@ ManageIQ.angular.app.controller('diagnosticsDatabaseFormController', ['$http', '
       vm.diagnosticsDatabaseModel.log_protocol = '';
       vm.diagnosticsDatabaseModel.log_aws_region = '';
       vm.diagnosticsDatabaseModel.openstack_region = '';
+      vm.diagnosticsDatabaseModel.otc_region = '';
+      vm.diagnosticsDatabaseModel.project_name = '';
       vm.diagnosticsDatabaseModel.keystone_api_version = '';
       vm.diagnosticsDatabaseModel.v3_domain_ident = '';
       vm.diagnosticsDatabaseModel.swift_api_port = 5000;
@@ -143,6 +149,9 @@ ManageIQ.angular.app.controller('diagnosticsDatabaseFormController', ['$http', '
       vm.diagnosticsDatabaseModel.log_aws_region = data.log_aws_region;
     } else if (vm.diagnosticsDatabaseModel.uri_prefix === 'swift') {
       vm.diagnosticsDatabaseModel.openstack_region     = data.openstack_region;
+      // C2C: Added condition for OTC cloud provider - otc_region project_name
+      vm.diagnosticsDatabaseModel.otc_region           = data.otc_region;
+      vm.diagnosticsDatabaseModel.project_name         = data.project_name;
       vm.diagnosticsDatabaseModel.keystone_api_version = data.keystone_api_version;
       vm.diagnosticsDatabaseModel.v3_domain_ident      = data.v3_domain_ident;
       vm.diagnosticsDatabaseModel.security_protocol    = data.security_protocol;

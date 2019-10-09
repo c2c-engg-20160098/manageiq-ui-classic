@@ -99,11 +99,13 @@ module Menu
         ])
       end
 
+      # C2C: Added condition for OTC cloud provider
       def hybrid_name(klass, name1, name2, name3)
         lambda do
           case klass.node_types
           when :non_openstack then name1
           when :openstack     then name2
+          when :otc           then name2
           else                     name3
           end
         end

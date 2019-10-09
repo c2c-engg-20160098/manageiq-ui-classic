@@ -210,7 +210,8 @@ class ApplicationHelper::ToolbarChooser
         "services_center_tb"
       end
     elsif x_active_tree == :ot_tree
-      if %w[root xx-otcfn xx-othot xx-otazu xx-otazs xx-otvnf xx-otvap].include?(x_node)
+      # C2C: Added condition for OTC cloud provider - xx-otchot xx-otcvnf
+      if %w[root xx-otcfn xx-othot xx-otchot xx-otazu xx-otazs xx-otvnf xx-otcvnf xx-otvap].include?(x_node)
         "orchestration_templates_center_tb"
       else
         "orchestration_template_center_tb"

@@ -417,6 +417,7 @@ class TreeBuilder
   }.freeze
 
   # Tree node prefixes for generic explorers
+  # C2C: Added condition for OTC cloud provider - chot cvnf
   X_TREE_NODE_PREFIXES = {
     "a"    => "MiqAction",
     "aec"  => "MiqAeClass",
@@ -461,6 +462,7 @@ class TreeBuilder
     "god"  => "GenericObjectDefinition",
     "h"    => "Host",
     "hot"  => "ManageIQ::Providers::Openstack::CloudManager::OrchestrationTemplate",
+    "chot" => "ManageIQ::Providers::Otc::CloudManager::OrchestrationTemplate",
     "isd"  => "IsoDatastore",
     "isi"  => "IsoImage",
     "l"    => "Lan",
@@ -500,6 +502,7 @@ class TreeBuilder
     "v"    => "Vm",
     "vap"  => "ManageIQ::Providers::Vmware::CloudManager::OrchestrationTemplate",
     "vnf"  => "ManageIQ::Providers::Openstack::CloudManager::VnfdTemplate",
+    "cvnf" => "ManageIQ::Providers::Otc::CloudManager::VnfdTemplate",
     "wi"   => "WindowsImage",
     "ws"   => "MiqWidgetSet",
     "xx"   => "Hash", # For custom (non-CI) nodes, specific to each tree

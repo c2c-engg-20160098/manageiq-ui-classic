@@ -10,10 +10,12 @@
 - ng_readonly_tls_verify ||= false
 - ng_readonly_tls_ca_certs ||= false
 
+-# C2C: Added condition for OTC Cloud provider
 %div{"ng-if" => defined?(security_protocol_hide) ? false : true}
   .form-group{"ng-class" => "{'has-error': angularForm.#{prefix}_security_protocol.$invalid}",
               "ng-if"    => "emsCommonModel.emstype == 'openstack' || " +                              |
                             "emsCommonModel.emstype == 'openstack_infra' || " +                        |
+                            "emsCommonModel.emstype == 'otc' || " +                                    |
                             "emsCommonModel.emstype == 'nuage_network' || " +                          |
                             "emsCommonModel.emstype == 'redfish_ph_infra' || " +                       |
                             "(emsCommonModel.emstype == 'vmware_cloud' && '#{prefix}' === 'amqp') || " |
@@ -32,6 +34,18 @@
                        "checkchange"                 => "",
                        "ng-required"                 => true,
                        "ng-change"                   => "openstackSecurityProtocolChanged()",
+                       "selectpicker-for-select-tag" => "",
+                       "prefix"                      => prefix.to_s,
+                       "reset-validation-status"     => "#{prefix}_auth_status")
+    -# C2C: Added code for OTC Cloud provider
+    .col-md-8{"ng-if" => "emsCommonModel.emstype == 'otc'"}
+      - prefix == "amqp" ? security_protocols = @amqp_security_protocols : security_protocols = @otc_security_protocols
+      = select_tag("#{prefix}_security_protocol",
+                       options_for_select([["<#{_('Choose')}>", nil]] + security_protocols, :disabled => ["<#{_('Choose')}>", nil]),
+                       "ng-model"                    => "#{ng_model}.#{prefix}_security_protocol",
+                       "checkchange"                 => "",
+                       "ng-required"                 => true,
+                       "ng-change"                   => "otcSecurityProtocolChanged()",
                        "selectpicker-for-select-tag" => "",
                        "prefix"                      => prefix.to_s,
                        "reset-validation-status"     => "#{prefix}_auth_status")

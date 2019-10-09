@@ -82,6 +82,9 @@ ManageIQ.angular.app.service('miqDBBackupService', function() {
     model.uri = null;
     model.aws_region = null;
     model.openstack_region = null;
+    // C2C: Added code for OTC cloud provider - otc_region project_name
+    model.otc_region = null;
+    model.project_name = null;
     model.keystone_api_version = null;
     model.security_protocol = null;
     model.v3_domain_ident = null;

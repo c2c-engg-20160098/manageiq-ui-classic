@@ -11,6 +11,10 @@ const templateTypeOptions = [{
   label: 'OpenStack Heat',
   value: 'ManageIQ::Providers::Openstack::CloudManager::OrchestrationTemplate',
 }, {
+  // C2C: Added condition for OTC cloud provider
+  label: 'Otc Heat',
+  value: 'ManageIQ::Providers::Otc::CloudManager::OrchestrationTemplate',
+}, {
   label: 'Microsoft Azure',
   value: 'ManageIQ::Providers::Azure::CloudManager::OrchestrationTemplate',
 }, {
@@ -20,6 +24,10 @@ const templateTypeOptions = [{
   label: 'VNF',
   value: 'ManageIQ::Providers::Openstack::CloudManager::VnfdTemplate',
 }, {
+  // C2C: Added condition for OTC cloud provider
+  label: 'Otc VNF',
+  value: 'ManageIQ::Providers::Otc::CloudManager::VnfdTemplate',
+},{
   label: 'VMWare vApp',
   value: 'ManageIQ::Providers::Vmware::CloudManager::OrchestrationTemplate',
 }];

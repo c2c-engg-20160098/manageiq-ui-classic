@@ -569,7 +569,8 @@ class CloudVolumeController < ApplicationController
 
     # Depending on the storage manager type, collect required form params.
     case params[:emstype]
-    when "ManageIQ::Providers::StorageManager::CinderManager", "ManageIQ::Providers::Openstack::StorageManager::CinderManager"
+    # C2C: Added condition for OTC cloud provider
+    when "ManageIQ::Providers::StorageManager::CinderManager", "ManageIQ::Providers::Openstack::StorageManager::CinderManager", "ManageIQ::Providers::Otc::StorageManager::CinderManager"
       options.merge!(cinder_manager_options)
     when "ManageIQ::Providers::Amazon::StorageManager::Ebs"
       options.merge!(aws_ebs_options)

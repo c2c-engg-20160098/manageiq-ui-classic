@@ -119,6 +119,9 @@ module OpsController::Settings::Schedules
       @log_password         = depot.try(:authentication_password)
       @log_aws_region       = depot.try(:aws_region)
       @openstack_region     = depot.try(:openstack_region)
+      # C2C: Added code for OTC cloud provider - otc_region project_name
+      @otc_region           = depot.try(:otc_region)
+      @project_name         = depot.try(:project_name)
       @keystone_api_version = depot.try(:keystone_api_version)
       @v3_domain_ident      = depot.try(:v3_domain_ident)
       @swift_api_port       = full_uri.blank? ? nil : URI(full_uri).port
@@ -152,6 +155,9 @@ module OpsController::Settings::Schedules
       log_userid           = depot.try(:authentication_userid)
       log_aws_region       = depot.try(:aws_region)
       openstack_region     = depot.try(:openstack_region)
+      # C2C: Added code for OTC cloud provider - otc_region project_name
+      otc_region           = depot.try(:otc_region)
+      project_name         = depot.try(:project_name)
       keystone_api_version = depot.try(:keystone_api_version)
       v3_domain_ident      = depot.try(:v3_domain_ident)
       swift_api_port       = full_uri.blank? ? 5000 : URI(full_uri).port
@@ -173,6 +179,7 @@ module OpsController::Settings::Schedules
     filtered_item_list = build_filtered_item_list(action_type, filter_type)
     run_at = schedule.run_at[:start_time].in_time_zone(schedule.run_at[:tz])
 
+    # C2C: Added code for OTC cloud provider - otc_region project_name
     schedule_hash = {
       :action_type          => action_type,
       :depot_name           => depot_name,
@@ -194,6 +201,8 @@ module OpsController::Settings::Schedules
       :uri_prefix           => uri_prefix,
       :log_aws_region       => log_aws_region ? log_aws_region : "",
       :openstack_region     => openstack_region ? openstack_region : "",
+      :otc_region           => otc_region ? otc_region : "",
+      :project_name         => project_name ? project_name : "",
       :keystone_api_version => keystone_api_version,
       :v3_domain_ident      => v3_domain_ident ? v3_domain_ident : "",
       :swift_api_port       => swift_api_port ? swift_api_port : 5000,
@@ -712,6 +721,8 @@ module OpsController::Settings::Schedules
     @database_backup_options_for_select = @protocols_arr.sort
     @regions_options_for_select = retrieve_aws_regions
     @api_versions_options_for_select = retrieve_openstack_api_versions
+    # C2C: Added code for OTC cloud provider
+    @otc_api_versions_options_for_select = retrieve_otc_api_versions
     @security_protocols_options_for_select = retrieve_security_protocols
   end
 
@@ -721,6 +732,11 @@ module OpsController::Settings::Schedules
 
   def retrieve_openstack_api_versions
     [['Keystone v2', 'v2'], ['Keystone v3', 'v3']]
+  end
+
+  # C2C: Added code for OTC cloud provider
+  def retrieve_otc_api_versions
+    [['Keystone v3', 'v3']]
   end
 
   def retrieve_security_protocols
@@ -764,6 +780,9 @@ module OpsController::Settings::Schedules
     uri_settings[:log_protocol]         = params[:log_protocol]
     uri_settings[:aws_region]           = params[:log_aws_region]
     uri_settings[:openstack_region]     = params[:openstack_region]
+    # C2C: Added code for OTC cloud provider - otc_region project_name
+    uri_settings[:otc_region]           = params[:otc_region]
+    uri_settings[:project_name]         = params[:project_name]
     uri_settings[:keystone_api_version] = params[:keystone_api_version]
     uri_settings[:v3_domain_ident]      = params[:v3_domain_ident]
     uri_settings[:security_protocol]    = params[:security_protocol]

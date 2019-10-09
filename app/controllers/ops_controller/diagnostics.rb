@@ -270,6 +270,7 @@ module OpsController::Diagnostics
     full_uri, _query = depot.try(:uri)&.split('?')
     uri_prefix, uri = full_uri.to_s.split('://')
     port         = URI(depot.try(:uri)).port
+    # C2C: Added condition for OTC cloud provider - otc_region project_name
     render :json => {
       :depot_name           => depot.try(:name),
       :uri                  => uri,
@@ -277,6 +278,8 @@ module OpsController::Diagnostics
       :log_userid           => depot.try(:authentication_userid),
       :log_aws_region       => depot.try(:aws_region),
       :openstack_region     => depot.try(:openstack_region),
+      :otc_region           => depot.try(:otc_region),
+      :project_name         => depot.try(:project_name),
       :keystone_api_version => depot.try(:keystone_api_version),
       :v3_domain_ident      => depot.try(:v3_domain_ident),
       :swift_api_port       => port ? port : 5000,

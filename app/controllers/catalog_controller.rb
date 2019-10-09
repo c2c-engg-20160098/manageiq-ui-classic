@@ -49,12 +49,15 @@ class CatalogController < ApplicationController
     'st_catalog_new'                => :st_catalog_edit,
   }.freeze
 
+  # C2C: Added condition for OTC cloud provider
   ORCHESTRATION_TEMPLATES_NODES = {
     'ManageIQ::Providers::Amazon::CloudManager::OrchestrationTemplate'     => "otcfn",
     'ManageIQ::Providers::Openstack::CloudManager::OrchestrationTemplate'  => "othot",
+    'ManageIQ::Providers::Otc::CloudManager::OrchestrationTemplate'        => "otchot",
     'ManageIQ::Providers::Azure::CloudManager::OrchestrationTemplate'      => "otazu",
     'ManageIQ::Providers::AzureStack::CloudManager::OrchestrationTemplate' => "otazs",
     'ManageIQ::Providers::Openstack::CloudManager::VnfdTemplate'           => "otvnf",
+    'ManageIQ::Providers::Otc::CloudManager::VnfdTemplate'                 => "otcvnf",
     'ManageIQ::Providers::Vmware::CloudManager::OrchestrationTemplate'     => "otvap"
   }.freeze
 
@@ -1678,7 +1681,8 @@ class CatalogController < ApplicationController
         get_node_info_handle_simple_leaf_node(id)
       elsif x_node == "root"
         get_node_info_handle_root_node
-      elsif %w[xx-otcfn xx-othot xx-otazu xx-otazs xx-otvnf xx-otvap].include?(x_node)
+      # C2C: Added condition for OTC cloud provider - xx-otchot xx-otcvnf
+      elsif %w[xx-otcfn xx-othot xx-otchot xx-otazu xx-otazs xx-otvnf xx-otcvnf xx-otvap].include?(x_node)
         get_node_info_handle_ot_folder_nodes
       elsif x_active_tree == :stcat_tree
         get_node_info_handle_leaf_node_stcat(id)

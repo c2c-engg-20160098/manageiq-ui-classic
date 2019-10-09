@@ -1,8 +1,10 @@
 module ApplicationHelper
+  # C2C: Added condition for OTC cloud provider
   module Discover
     DTYPES = {
       'azure'           => _('Azure'),
       'ec2'             => _('Amazon'),
+      'otc'             => _('Otc'),
       'esx'             => _('ESX'),
       'hyperv'          => _('Hyper-V'),
       'ipmi'            => _('IPMI'),

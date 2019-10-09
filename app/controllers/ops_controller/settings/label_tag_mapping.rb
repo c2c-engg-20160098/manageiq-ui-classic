@@ -12,6 +12,7 @@ module OpsController::Settings::LabelTagMapping
   # In any case, this requires different providers use disjoint sets of strings.
   MappableEntity = Struct.new(:prefix, :model)
 
+  # C2C: Added condition for OTC cloud provider
   MAPPABLE_ENTITIES = {
     # TODO: support per-provider "All Amazon" etc?
     # Currently we have only global "All".
@@ -22,6 +23,8 @@ module OpsController::Settings::LabelTagMapping
                                                 "ManageIQ::Providers::Amazon::CloudManager::Vm"),
     "VmOpenstack"         => MappableEntity.new("openstack:vm:",
                                                 "ManageIQ::Providers::Openstack::CloudManager::Vm"),
+    "VmOtc"               => MappableEntity.new("otc:vm:",
+                                                "ManageIQ::Providers::Otc::CloudManager::Vm"),
     "VmAzure"             => MappableEntity.new("azure:vm:",
                                                 "ManageIQ::Providers::Azure::CloudManager::Vm"),
     "Image"               => MappableEntity.new("amazon:image:",

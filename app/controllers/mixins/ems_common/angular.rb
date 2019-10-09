@@ -9,6 +9,10 @@ module Mixins
       OPENSTACK_PARAMS = %i[name provider_region api_version default_security_protocol keystone_v3_domain_id default_hostname default_api_port default_userid event_stream_selection].freeze
       OPENSTACK_AMQP_PARAMS = %i[name provider_region api_version amqp_security_protocol keystone_v3_domain_id amqp_hostname amqp_api_port amqp_userid event_stream_selection].freeze
 
+      # C2C: Added code for OTC cloud provider
+      OTC_PARAMS = %i(name provider_region api_version default_security_protocol keystone_v3_domain_id default_hostname default_api_port project_name default_userid event_stream_selection).freeze
+      OTC_AMQP_PARAMS = %i(name provider_region api_version amqp_security_protocol keystone_v3_domain_id amqp_hostname amqp_api_port project_name amqp_userid event_stream_selection).freeze
+
       included do
         include Mixins::GenericFormMixin
       end
@@ -134,6 +138,14 @@ module Mixins
             [password, params.to_unsafe_h.slice(*OPENSTACK_PARAMS)]
           when 'amqp'
             [ManageIQ::Password.encrypt(params[:amqp_password]), params.to_unsafe_h.slice(*OPENSTACK_AMQP_PARAMS)]
+          end
+          # C2C: Added condition for OTC cloud provider
+        when 'ManageIQ::Providers::Otc::CloudManager'
+          case params[:cred_type]
+          when 'default'
+            [password, params.to_unsafe_h.slice(*OTC_PARAMS)]
+          when 'amqp'
+            [ManageIQ::Password.encrypt(params[:amqp_password]), params.to_unsafe_h.slice(*OTC_AMQP_PARAMS)]
           end
         when 'ManageIQ::Providers::Amazon::CloudManager'
           uri = URI.parse(WEBrick::HTTPUtils.escape(params[:default_url]))
@@ -393,6 +405,7 @@ module Mixins
           amqp_fallback_hostname2 = @ems.connection_configurations.amqp_fallback2 ? @ems.connection_configurations.amqp_fallback2.endpoint.hostname : ""
         end
 
+        # C2C: Added condition for OTC cloud provider - project_name
         if %w[ems_cloud ems_network].include?(controller_name)
           render :json => {:name                            => @ems.name,
                            :emstype                         => @ems.emstype,
@@ -409,6 +422,7 @@ module Mixins
                            :default_security_protocol       => default_security_protocol,
                            :amqp_security_protocol          => amqp_security_protocol,
                            :provider_region                 => @ems.provider_region,
+                           :project_name                    => @ems.project_name,
                            :openstack_infra_providers_exist => retrieve_openstack_infra_providers.length.positive?,
                            :default_userid                  => @ems.authentication_userid.to_s,
                            :amqp_userid                     => amqp_userid,
@@ -481,6 +495,7 @@ module Mixins
                             :kubevirt_password_exists      => !@ems.authentication_token(:kubevirt).nil?}
         end
 
+        # C2C: Added condition for OTC cloud provider - project_name
         if controller_name == "ems_container"
           render :json => {:name                                => @ems.name,
                            :emstype                             => @ems.emstype,
@@ -499,6 +514,7 @@ module Mixins
                            :default_security_protocol           => default_security_protocol,
                            :default_tls_ca_certs                => default_tls_ca_certs,
                            :provider_region                     => @ems.provider_region,
+                           :project_name                        => @ems.project_name,
                            :default_userid                      => @ems.authentication_userid.to_s,
                            :service_account                     => service_account.to_s,
                            :bearer_token_exists                 => !@ems.authentication_token(:bearer).nil?,
@@ -560,6 +576,8 @@ module Mixins
       def set_ems_record_vars(ems, mode = nil)
         ems.name                   = params[:name].strip if params[:name]
         ems.provider_region        = params[:provider_region] if params[:provider_region]
+        # C2C: Added condition for OTC cloud provider - project_name
+        ems.project_name           = params[:project_name] if params[:project_name]
         ems.api_version            = params[:api_version].strip if params[:api_version]
         ems.provider_id            = params[:provider_id]
         ems.zone                   = Zone.find_by(:name => params[:zone]) if params[:zone]
@@ -599,7 +617,8 @@ module Mixins
         prometheus_alerts_endpoint = {}
         kubevirt_endpoint = {}
 
-        if ems.kind_of?(ManageIQ::Providers::Openstack::CloudManager) || ems.kind_of?(ManageIQ::Providers::Openstack::InfraManager)
+        # C2C: Added condition for OTC cloud provider
+        if ems.kind_of?(ManageIQ::Providers::Openstack::CloudManager) || ems.kind_of?(ManageIQ::Providers::Openstack::InfraManager) || ems.kind_of?(ManageIQ::Providers::Otc::CloudManager)
           default_endpoint = {:role => :default, :hostname => hostname, :port => port, :security_protocol => ems.security_protocol}
           ems.keystone_v3_domain_id = params[:keystone_v3_domain_id]
           if params[:event_stream_selection] == "amqp"
@@ -609,7 +628,8 @@ module Mixins
           end
         end
 
-        if ems.kind_of?(ManageIQ::Providers::Openstack::CloudManager) || ems.kind_of?(ManageIQ::Providers::Openstack::InfraManager) || ems.kind_of?(ManageIQ::Providers::Redhat::InfraManager)
+        # C2C: Added condition for OTC cloud provider
+        if ems.kind_of?(ManageIQ::Providers::Openstack::CloudManager) || ems.kind_of?(ManageIQ::Providers::Openstack::InfraManager) || ems.kind_of?(ManageIQ::Providers::Redhat::InfraManager) || ems.kind_of?(ManageIQ::Providers::Otc::CloudManager)
           ssh_keypair_endpoint = {:role => :ssh_keypair}
         end
 
@@ -811,8 +831,10 @@ module Mixins
         if ems.supports?(:assume_role)
           (creds[:default] ||= {})[:service_account] = params[:default_assume_role]
         end
+        # C2C: Added condition for OTC cloud provider
         if (ems.kind_of?(ManageIQ::Providers::Openstack::InfraManager) ||
             ems.kind_of?(ManageIQ::Providers::Openstack::CloudManager) ||
+            ems.kind_of?(ManageIQ::Providers::Otc::CloudManager) ||
             ems.kind_of?(ManageIQ::Providers::Redhat::InfraManager)) &&
            ems.supports_authentication?(:ssh_keypair) && params[:ssh_keypair_userid]
           ssh_keypair_password = params[:ssh_keypair_password] ? params[:ssh_keypair_password].gsub(/\r\n/, "\n") : ems.authentication_key(:ssh_keypair)
@@ -865,15 +887,18 @@ module Mixins
       def retrieve_event_stream_selection
         return 'amqp' if @ems.connection_configurations.amqp&.endpoint&.hostname&.present?
         return 'ceilometer' if @ems.connection_configurations.ceilometer&.endpoint&.hostname&.present?
-        @ems.kind_of?(ManageIQ::Providers::Openstack::CloudManager) || @ems.kind_of?(ManageIQ::Providers::Openstack::InfraManager) ? 'ceilometer' : 'none'
+        # C2C: Added condition for OTC cloud provider
+        @ems.kind_of?(ManageIQ::Providers::Openstack::CloudManager) || @ems.kind_of?(ManageIQ::Providers::Otc::CloudManager) || @ems.kind_of?(ManageIQ::Providers::Openstack::InfraManager) ? 'ceilometer' : 'none'
       end
 
       def construct_edit_for_audit(ems)
         @edit ||= {}
         azure_tenant_id = ems.kind_of?(ManageIQ::Providers::Azure::CloudManager) ? ems.azure_tenant_id : nil
+        # C2C: Added condition for OTC cloud provider - project_name
         @edit[:current] = {
           :name                  => ems.name,
           :provider_region       => ems.provider_region,
+          :project_name          => ems.project_name,
           :hostname              => ems.hostname,
           :azure_tenant_id       => azure_tenant_id,
           :keystone_v3_domain_id => ems.respond_to?(:keystone_v3_domain_id) ? ems.keystone_v3_domain_id : nil,
@@ -887,8 +912,10 @@ module Mixins
 
         @edit[:current][:tenant_mapping_enabled] = ems.tenant_mapping_enabled if ems.class.supports_cloud_tenant_mapping?
 
+        # C2C: Added condition for OTC cloud provider - project_name
         @edit[:new] = {:name                  => params[:name],
                        :provider_region       => params[:provider_region],
+                       :project_name          => params[:project_name],
                        :hostname              => params[:hostname],
                        :azure_tenant_id       => params[:azure_tenant_id],
                        :keystone_v3_domain_id => params[:keystone_v3_domain_id],

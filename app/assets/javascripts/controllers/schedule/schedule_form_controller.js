@@ -7,6 +7,9 @@ ManageIQ.angular.app.controller('scheduleFormController', ['$http', '$scope', 's
       log_userid: '',
       log_aws_region: '',
       openstack_region: '',
+      // C2C: Added code for OTC cloud provider - otc_region project_name
+      otc_region: '',
+      project_name: '',
       keystone_api_version: '',
       v3_domain_ident: '',
       swift_api_port: 5000,
@@ -90,6 +93,9 @@ ManageIQ.angular.app.controller('scheduleFormController', ['$http', '$scope', 's
       $scope.scheduleModel.ui_attrs        = data.ui_attrs;
       $scope.scheduleModel.log_aws_region       = data.log_aws_region;
       $scope.scheduleModel.openstack_region     = data.openstack_region;
+      // C2C: Added code for OTC cloud provider - otc_region project_name
+      $scope.scheduleModel.otc_region           = data.otc_region;
+      $scope.scheduleModel.project_name         = data.project_name;
       $scope.scheduleModel.keystone_api_version = data.keystone_api_version;
       $scope.scheduleModel.v3_domain_ident      = data.v3_domain_ident;
       $scope.scheduleModel.swift_api_port       = data.swift_api_port;

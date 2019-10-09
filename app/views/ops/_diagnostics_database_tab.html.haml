@@ -101,6 +101,20 @@
         %span.help-block{"ng-show" => "angularForm.keystone_api_version.$invalid"}
           = _("Required")
 
+  -# C2C: Added code for OTC Cloud provider for API Version
+  %apiversion{'ng-if' => 'vm.swiftSecurityProtocolSelect()'}
+    .form-group{"ng-class" => "{'has-error': angularForm.keystone_api_version.$invalid}"}
+      %label.col-md-2.control-label
+        = _("API Version")
+      .col-md-8
+        = select_tag('keystone_api_version', options_for_select(@otc_api_versions_options_for_select),
+                     "ng-model"                    => "vm.diagnosticsDatabaseModel.keystone_api_version",
+                     "ng-required"                 => "vm.swiftSecurityProtocolRequired()",
+                     "checkchange"                 => "",
+                     "selectpicker-for-select-tag" => "")
+        %span.help-block{"ng-show" => "angularForm.keystone_api_version.$invalid"}
+          = _("Required")
+
   %domainid{'ng-if' => 'vm.swiftSecurityProtocolSelect()'}
     .form-group{"ng-class" => "{'has-error': angularForm.v3_domain_ident.$invalid}", "ng-if" => "vm.diagnosticsDatabaseModel.keystone_api_version == 'v3'"}
       %label.col-md-2.control-label{"for" => "v3_domain_ident"}
@@ -127,6 +141,36 @@
                             "required"                => true,
                             "checkchange"             => ""}
         %span.help-block{"ng-show" => "angularForm.openstack_region.$invalid"}
+          = _("Required")
+
+  -# C2C: Added code for OTC Cloud provider for Region parameter
+  %otcregion{'ng-if' => 'vm.swiftSecurityProtocolSelect()'}
+    .form-group{"ng-class" => "{'has-error': angularForm.otc_region.$invalid}"}
+      %label.col-md-2.control-label{"for" => "ems_region_input"}
+        = _('Region')
+      .col-md-4
+        %input.form-control{"type"                    => "text",
+                            "id"                      => "otc_region",
+                            "name"                    => "otc_region",
+                            "ng-model"                => "vm.diagnosticsDatabaseModel.otc_region",
+                            "required"                => true,
+                            "checkchange"             => ""}
+        %span.help-block{"ng-show" => "angularForm.otc_region.$invalid"}
+          = _("Required")
+
+  -# C2C: Added code for OTC Cloud provider for Project name parameter
+  %projectname{'ng-if' => 'vm.swiftSecurityProtocolSelect()'}
+    .form-group{"ng-class" => "{'has-error': angularForm.project_name.$invalid}"}
+      %label.col-md-2.control-label{"for" => "ems_project_name"}
+        = _('Project Name')
+      .col-md-4
+        %input.form-control{"type"                    => "text",
+                            "id"                      => "project_name",
+                            "name"                    => "project_name",
+                            "ng-model"                => "vm.diagnosticsDatabaseModel.project_name",
+                            "required"                => true,
+                            "checkchange"             => ""}
+        %span.help-block{"ng-show" => "angularForm.project_name.$invalid"}
           = _("Required")
 
   %region{'ng-if' => 'vm.regionSelect()'}

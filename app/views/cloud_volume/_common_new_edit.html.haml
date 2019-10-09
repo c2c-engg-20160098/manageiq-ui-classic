@@ -14,9 +14,9 @@
         = "<#{_('Choose')}>"
     %span.help-block{"ng-show" => "angularForm.storage_manager_id.$error.required"}
       = _("Required")
-
+-# C2C: Added condition for OTC Cloud provider
 .form-group{"ng-class" => "{'has-error': angularForm.cloud_tenant_id.$invalid}",
-            "ng-if"    => "(vm.cloudVolumeModel.emstype == 'ManageIQ::Providers::StorageManager::CinderManager') || (vm.cloudVolumeModel.emstype == 'ManageIQ::Providers::Openstack::StorageManager::CinderManager')"}
+            "ng-if"    => "(vm.cloudVolumeModel.emstype == 'ManageIQ::Providers::StorageManager::CinderManager') || (vm.cloudVolumeModel.emstype == 'ManageIQ::Providers::Openstack::StorageManager::CinderManager') || (vm.cloudVolumeModel.emstype == 'ManageIQ::Providers::Otc::StorageManager::CinderManager')"}
   %label.col-md-2.control-label
     = _('Cloud Tenant')
   .col-md-8

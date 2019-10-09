@@ -528,11 +528,15 @@ module Mixins
       @provider_regions = retrieve_provider_regions
       @openstack_infra_providers = retrieve_openstack_infra_providers
       @openstack_security_protocols = retrieve_openstack_security_protocols
+      # C2C: Added code for OTC cloud provider - @otc_security_protocols
+      @otc_security_protocols = retrieve_otc_security_protocols
       @amqp_security_protocols = retrieve_amqp_security_protocols
       @nuage_security_protocols = retrieve_nuage_security_protocols
       @container_security_protocols = retrieve_container_security_protocols
       @scvmm_security_protocols = [[_('Basic (SSL)'), 'ssl'], ['Kerberos', 'kerberos']]
       @openstack_api_versions = retrieve_openstack_api_versions
+      # C2C: Added code for OTC cloud provider - @otc_api_versions
+      @otc_api_versions = retrieve_otc_api_versions
       @vmware_cloud_api_versions = retrieve_vmware_cloud_api_versions
       @azure_stack_api_versions = retrieve_azure_stack_api_versions
       @emstype_display = model.supported_types_and_descriptions_hash[@ems.emstype]
@@ -563,6 +567,11 @@ module Mixins
       [['Keystone v2', 'v2'], ['Keystone v3', 'v3']]
     end
 
+    # C2C: Added code for OTC cloud provider
+    def retrieve_otc_api_versions
+      [['Keystone v3', 'v3']]
+    end
+
     def retrieve_vmware_cloud_api_versions
       [['vCloud API 5.1', '5.1'], ['vCloud API 5.5', '5.5'], ['vCloud API 5.6', '5.6'], ['vCloud API 9.0', '9.0']]
     end
@@ -581,6 +590,12 @@ module Mixins
 
     def retrieve_openstack_security_protocols
       retrieve_security_protocols
+    end
+
+    # C2C: Added code for OTC cloud provider for security protocol field at provider validation page
+    def retrieve_otc_security_protocols
+      # retrieve_security_protocols
+      [[_('SSL'), 'ssl-with-validation']]
     end
 
     def retrieve_nuage_security_protocols

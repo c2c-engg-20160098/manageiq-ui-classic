@@ -13,6 +13,7 @@ class TreeBuilderOrchestrationTemplates < TreeBuilder
   end
 
   def x_get_tree_roots
+    # C2C: Added code for OTC cloud provider - otchot otcvnf
     nodes = [
       {:id   => 'otcfn',
        :tree => "otcfn_tree",
@@ -21,6 +22,11 @@ class TreeBuilderOrchestrationTemplates < TreeBuilder
        :tip  => _("CloudFormation Templates")},
       {:id   => 'othot',
        :tree => "othot_tree",
+       :text => _("Heat Templates"),
+       :icon => "pficon pficon-template",
+       :tip  => _("Heat Templates")},
+      {:id   => 'otchot',
+       :tree => "otchot_tree",
        :text => _("Heat Templates"),
        :icon => "pficon pficon-template",
        :tip  => _("Heat Templates")},
@@ -39,6 +45,11 @@ class TreeBuilderOrchestrationTemplates < TreeBuilder
        :text => _("VNF Templates"),
        :icon => "pficon pficon-template",
        :tip  => _("VNF Templates")},
+      {:id   => 'otcvnf',
+       :tree => "otcvnf_tree",
+       :text => _("VNF Templates"),
+       :icon => "pficon pficon-template",
+       :tip  => _("VNF Templates")},
       {:id   => 'otvap',
        :tree => "otvap_tree",
        :text => _("vApp Templates"),
@@ -49,12 +60,15 @@ class TreeBuilderOrchestrationTemplates < TreeBuilder
   end
 
   def x_get_tree_custom_kids(object, count_only)
+    # C2C: Added code for OTC cloud provider - otchot otcvnf
     classes = {
       "otcfn" => ManageIQ::Providers::Amazon::CloudManager::OrchestrationTemplate,
       "othot" => ManageIQ::Providers::Openstack::CloudManager::OrchestrationTemplate,
+      "otchot" => ManageIQ::Providers::Otc::CloudManager::OrchestrationTemplate,
       "otazu" => ManageIQ::Providers::Azure::CloudManager::OrchestrationTemplate,
       "otazs" => ManageIQ::Providers::AzureStack::CloudManager::OrchestrationTemplate,
       "otvnf" => ManageIQ::Providers::Openstack::CloudManager::VnfdTemplate,
+      "otcvnf" => ManageIQ::Providers::Otc::CloudManager::VnfdTemplate,
       "otvap" => ManageIQ::Providers::Vmware::CloudManager::OrchestrationTemplate
     }
     count_only_or_objects_filtered(count_only, classes[object[:id]].where(:orderable => true), "name")
