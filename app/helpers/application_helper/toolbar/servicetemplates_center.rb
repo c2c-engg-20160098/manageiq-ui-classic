@@ -2,7 +2,7 @@ class ApplicationHelper::Toolbar::ServicetemplatesCenter < ApplicationHelper::To
   button_group('catalogitem_vmdb', [
     select(
       :catalogitem_vmdb_choice,
-      'fa fa-cog fa-lg',
+      nil,
       t = N_('Configuration'),
       t,
       :items => [
@@ -46,7 +46,8 @@ class ApplicationHelper::Toolbar::ServicetemplatesCenter < ApplicationHelper::To
           :data         => {'function'      => 'sendDataWithRx',
                             'function-data' => {:controller     => 'provider_dialogs',
                                                 :modal_title    => N_('Delete Catalog Items'),
-                                                :component_name => 'RemoveCatalogItemModal'}.to_json}),
+                                                :component_name => 'RemoveCatalogItemModal'}}
+        ),
         separator,
         button(
           :catalogitem_ownership,
@@ -63,7 +64,7 @@ class ApplicationHelper::Toolbar::ServicetemplatesCenter < ApplicationHelper::To
   button_group('catalogitem_policy', [
     select(
       :catalogitem_policy_choice,
-      'fa fa-shield fa-lg',
+      nil,
       t = N_('Policy'),
       t,
       :enabled => false,

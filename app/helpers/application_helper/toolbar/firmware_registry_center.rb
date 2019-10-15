@@ -17,7 +17,7 @@ class ApplicationHelper::Toolbar::FirmwareRegistryCenter < ApplicationHelper::To
     [
       select(
         :firmware_registry_config_choice,
-        'fa fa-cog fa-lg',
+        nil,
         t = N_('Configuration'),
         t,
         :enabled => true,
@@ -43,7 +43,7 @@ class ApplicationHelper::Toolbar::FirmwareRegistryCenter < ApplicationHelper::To
                 :controller => 'toolbarActions',
                 :payload    => {:entity => 'firmware_registries'},
                 :type       => 'delete'
-              }.to_json
+              }
             },
             :confirm => N_('Remove this Firmware Registry from Inventory?')
           )
