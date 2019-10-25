@@ -460,6 +460,7 @@ module VmCommon
                                                               :options   => @policy_options)
     @edit = session[:edit] if session[:edit]
     if @edit && @edit[:explorer]
+      @sb[:explorer] = true
       if session[:policies].empty?
         render_flash(_("No policies were selected for Policy Simulation."), :error)
         return
@@ -467,11 +468,13 @@ module VmCommon
       @in_a_form = true
       replace_right_cell(:action => 'policy_sim', :refresh_breadcrumbs => false)
     else
+      @sb[:explorer] = nil
       render :template => 'vm/show'
     end
   end
 
   def policy_show_options
+    @explorer = @sb[:explorer]
     if params[:passed] == "null" || params[:passed] == ""
       @policy_options[:passed] = false
       @policy_options[:failed] = true
@@ -495,6 +498,7 @@ module VmCommon
 
   # Show/Unshow out of scope items
   def policy_options
+    @explorer = @sb[:explorer]
     @vm = @record = identify_record(params[:id], VmOrTemplate)
     @policy_options ||= {}
     @policy_options[:out_of_scope] = (params[:out_of_scope] == "1")
@@ -1121,7 +1125,6 @@ module VmCommon
     elsif @sb[:action] == 'vmtree_info'
       c_tb = build_toolbar("x_vm_vmtree_center_tb")
     end
-    h_tb = build_toolbar("x_history_tb") unless @in_a_form
 
     # Build presenter to render the JS command for the tree update
     presenter ||= ExplorerPresenter.new(
@@ -1251,9 +1254,9 @@ module VmCommon
 
     presenter[:right_cell_text] = @right_cell_text
 
-    presenter.reload_toolbars(:history => h_tb, :center => c_tb, :custom => cb_tb, :view => v_tb)
+    presenter.reload_toolbars(:center => c_tb, :custom => cb_tb, :view => v_tb)
 
-    presenter.set_visibility(h_tb.present? || c_tb.present? || v_tb.present?, :toolbar)
+    presenter.set_visibility(c_tb.present? || v_tb.present?, :toolbar)
 
     presenter[:record_id] = @record.try(:id)
 
