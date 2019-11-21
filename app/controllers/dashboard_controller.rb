@@ -125,7 +125,14 @@ class DashboardController < ApplicationController
     end
 
     return if redirect_to_remembered(section.id)
-    redirect_to(section.default_redirect_url)
+
+    target_url = section.default_redirect_url
+
+    if target_url
+      redirect_to(target_url)
+    else
+      redirect_to(start_url_for_user(nil))
+    end
   end
 
   # New tab was pressed
@@ -140,7 +147,9 @@ class DashboardController < ApplicationController
 
   def widget_chart_data
     widget = find_record_with_rbac(MiqWidget, params[:id])
-    datum = widget.contents_for_user(current_user).contents
+    widget_content = widget.contents_for_user(current_user)
+    blank = widget_content.blank?
+    datum = blank ? nil : widget_content.contents
     content = nil
     if datum.blank?
       state = 'no_data'
@@ -152,6 +161,7 @@ class DashboardController < ApplicationController
     end
     render :json => {:content   => content,
                      :minimized => widget_minimized?(params[:id]),
+                     :blank     => blank,
                      :state     => state}
   end
 
@@ -163,7 +173,8 @@ class DashboardController < ApplicationController
                   {:description => shortcut.description, :href => shortcut.miq_shortcut.url}
                 end
     render :json => {:shortcuts => shortcuts,
-                     :minimized => widget_minimized?(params[:id])}
+                     :minimized => widget_minimized?(params[:id]),
+                     :blank     => false}
   end
 
   def widget_minimized?(id)
@@ -173,8 +184,12 @@ class DashboardController < ApplicationController
 
   def widget_report_data
     widget = find_record_with_rbac(MiqWidget, params[:id])
+    widget_content = widget.contents_for_user(current_user)
+    blank = widget_content.blank?
+    content = blank ? nil : widget_content.contents
     render :json => {
-      :content   => widget.contents_for_user(current_user).contents,
+      :blank     => blank,
+      :content   => content,
       :minimized => widget_minimized?(params[:id])
     }
   end
@@ -350,6 +365,17 @@ class DashboardController < ApplicationController
       page << javascript_prologue
       page.replace_html("lightbox_div", :partial => "zoomed_chart", :locals => {:widget => widget})
       page << "$('#lightbox-panel').fadeIn(300);"
+    end
+  end
+
+  def widget_refresh
+    assert_privileges("widget_generate_content")
+    w = MiqWidget.find(params[:widget])
+    task_id = w.queue_generate_content
+    if task_id
+      render :json => {:task_id => task_id.to_s}, :status => 200
+    else
+      render :json => {:error => {:message => _("There was an error during refresh.")}}, :status => 400
     end
   end
 
