@@ -200,6 +200,7 @@ class CatalogController < ApplicationController
     # need to check req_id in session since we are using common code for prov requests and atomic ST screens
     id = session[:edit][:req_id] || "new"
     return unless load_edit("prov_edit__#{id}", "replace_cell__explorer")
+
     get_form_vars
     # Build Catalog Items tree unless @edit[:ae_tree_select]
     build_automate_tree(:automate_catalog) if params[:display] || params[:template_id] || params[:manager_id]
@@ -363,6 +364,7 @@ class CatalogController < ApplicationController
       replace_right_cell
     when "save", "add"
       return unless load_edit("st_edit__#{params[:id] || "new"}", "replace_cell__explorer")
+
       get_form_vars
       if @edit[:new][:name].blank?
         add_flash(_("Name is required"), :error)
@@ -470,7 +472,7 @@ class CatalogController < ApplicationController
       msg = _("Use the Choose file button to locate a .png or .jpg image file")
       err = true
     end
-    params[:id] = x_build_node_id(@record)  # Get the tree node id
+    params[:id] = x_build_node_id(@record) # Get the tree node id
     add_flash(msg, err == true ? :error : nil)
     respond_to do |format|
       format.js { replace_right_cell(:replace_trees => trees_to_replace(%i[sandt svccat stcat])) }
@@ -483,8 +485,10 @@ class CatalogController < ApplicationController
 
   def resource_delete
     return unless load_edit("st_edit__#{params[:id]}", "replace_cell__explorer")
+
     @edit[:new][:rsc_groups][params[:grp_id].to_i].each do |r|
       next if r[:id].to_s != params[:rec_id]
+
       @edit[:new][:available_resources][r[:resource_id]] = r[:name] # add it back to available resources pulldown
       @edit[:new][:selected_resources].delete(r[:resource_id]) # delete it from to selected resources
       @edit[:new][:rsc_groups][params[:grp_id].to_i].delete(r) # delete element from group
@@ -594,6 +598,7 @@ class CatalogController < ApplicationController
     ra = nil
     st.resource_actions.each do |r|
       next unless r.action.downcase == "provision" && r.dialog_id
+
       # find the first provision action, run the dialog
       ra = r
       break
@@ -643,7 +648,7 @@ class CatalogController < ApplicationController
       st_catalog_set_form_vars
       @changed = session[:changed] = false
       replace_right_cell(:action => "st_catalog_edit")
-      return
+      nil
     end
   end
 
@@ -692,7 +697,7 @@ class CatalogController < ApplicationController
         begin
           ot.remote_proxy = true
           ot.destroy
-        rescue => bang
+        rescue StandardError => bang
           add_flash(_("Error during 'Orchestration Template Deletion': %{error_message}") %
             {:error_message => bang.message}, :error)
         else
@@ -840,6 +845,7 @@ class CatalogController < ApplicationController
   def atomic_req_submit
     id = session[:edit][:req_id] || "new"
     return unless load_edit("prov_edit__#{id}", "show_list")
+
     if @edit[:new][:name].blank?
       # check for service template required fields before creating a request
       add_flash(_("Name is required"), :error)
@@ -876,6 +882,7 @@ class CatalogController < ApplicationController
     # Check the validity of the entry points
     %i[fqname reconfigure_fqname retire_fqname].each do |fqname|
       next if @edit[:new][fqname].blank? || !MiqAeClass.find_homonymic_instances_across_domains(current_user, @edit[:new][fqname]).empty?
+
       case fqname
       when :fqname
         add_flash(_('Please correct invalid Provisioning Entry Point prior to saving'), :error)
@@ -925,7 +932,7 @@ class CatalogController < ApplicationController
         st.add_resource(request) if need_prov_dialogs?(@edit[:new][:st_prov_type])
       end
     end
-    st.currency = @edit[:new][:currency] ? ChargebackRateDetailCurrency.find_by(:id => @edit[:new][:currency].to_i) : nil
+    st.currency = @edit[:new][:currency] ? Currency.find_by(:id => @edit[:new][:currency].to_i) : nil
     st.price    = st.currency ? @edit[:new][:price] : nil if @edit[:new][:price]
 
     if st.save
@@ -1064,7 +1071,7 @@ class CatalogController < ApplicationController
     st.generic_subtype = @edit[:new][:generic_subtype] if @edit[:new][:st_prov_type] == 'generic'
     st.zone_id = @edit[:new][:zone_id]
     st.additional_tenants = Tenant.where(:id => @edit[:new][:tenant_ids]) # Selected Additional Tenants in the tree
-    st.currency = @edit[:new][:currency] ? ChargebackRateDetailCurrency.find_by(:id => @edit[:new][:currency].to_i) : nil
+    st.currency = @edit[:new][:currency] ? Currency.find_by(:id => @edit[:new][:currency].to_i) : nil
     st.price    = st.currency ? @edit[:new][:price] : nil if @edit[:new][:price]
   end
 
@@ -1087,6 +1094,7 @@ class CatalogController < ApplicationController
             options[:scaling_min] = sr[:scaling_min].to_i
             options[:scaling_max] = sr[:scaling_max].to_i
             next unless sr[:resource_id].to_s == rsc.id.to_s
+
             begin
               st.add_resource(rsc, options)
             rescue MiqException::MiqServiceCircularReferenceError => bang
@@ -1107,7 +1115,7 @@ class CatalogController < ApplicationController
     @edit[:new][:description] = @record.description
     @edit[:new][:long_description] = @record.long_description
     @edit[:new][:provision_cost] = @record.provision_cost
-    @edit[:new][:display] = @record.display ? @record.display : false
+    @edit[:new][:display] = @record.display || false
     @edit[:new][:catalog_id] = @record.service_template_catalog.try(:id)
     @edit[:new][:dialog_id] = nil # initialize
     @edit[:new][:st_prov_type] ||= @record.prov_type
@@ -1168,6 +1176,7 @@ class CatalogController < ApplicationController
     len = @record.service_resources.size
     len.times do |l|
       next unless @record.group_has_resources?(l)
+
       @edit[:new][:rsc_groups][l] ||= []
       @record.each_group_resource(l) do |sr|
         @edit[:new][:selected_resources].push(sr.resource_id)
@@ -1176,13 +1185,13 @@ class CatalogController < ApplicationController
         r[:name] = sr.resource_name
         r[:id] = sr.id
         r[:resource_id] = sr.resource_id
-        r[:start_action] = sr.start_action ? sr.start_action : "Power On"
-        r[:stop_action] = sr.stop_action ? sr.stop_action : "Shutdown"
-        r[:start_delay] = sr.start_delay ? sr.start_delay : 0
-        r[:stop_delay] = sr.stop_delay ? sr.stop_delay : 0
-        r[:scaling_min] = sr.scaling_min ? sr.scaling_min : 1
-        r[:scaling_max] = sr.scaling_max ? sr.scaling_max : sr.scaling_min
-        r[:provision_index] = sr.provision_index ? sr.provision_index : 0
+        r[:start_action] = sr.start_action || "Power On"
+        r[:stop_action] = sr.stop_action || "Shutdown"
+        r[:start_delay] = sr.start_delay || 0
+        r[:stop_delay] = sr.stop_delay || 0
+        r[:scaling_min] = sr.scaling_min || 1
+        r[:scaling_max] = sr.scaling_max || sr.scaling_min
+        r[:provision_index] = sr.provision_index || 0
         @edit[:new][:rsc_groups][l].push(r)
       end
     end
@@ -1279,7 +1288,7 @@ class CatalogController < ApplicationController
   end
 
   def code_currency_label(currency)
-    _('Price / Month (in %{currency})') % {:currency => ChargebackRateDetailCurrency.find(currency).code}
+    _('Price / Month (in %{currency})') % {:currency => Currency.find(currency).code}
   end
 
   def checked_tenants
@@ -1334,6 +1343,7 @@ class CatalogController < ApplicationController
   def available_orchestration_managers_for_template_type(template_type)
     template_type = template_type.to_s.safe_constantize
     return [] unless template_type && template_type < OrchestrationTemplate
+
     template_type.eligible_managers.collect { |m| [m.name, m.id] }.sort
   end
 
@@ -1443,6 +1453,7 @@ class CatalogController < ApplicationController
       # push a new resource into highest existing/populated group
       @edit[:new][:rsc_groups].each_with_index do |g, i|
         next if g.present?
+
         id = i.zero? ? 0 : i - 1
         @edit[:new][:rsc_groups][id].push(r) unless @edit[:new][:rsc_groups][id].include?(r)
         break
@@ -1459,6 +1470,7 @@ class CatalogController < ApplicationController
           @edit[:new][:rsc_groups].each_with_index do |groups, i|
             groups.each do |g|
               next unless g[:id].to_i == rid.to_i
+
               @edit[:new][:rsc_groups][val.to_i - 1].push(g)
               @edit[:new][:rsc_groups][i].delete(g)
               @group_changed = true
@@ -1652,7 +1664,7 @@ class CatalogController < ApplicationController
       @sb[:stc_nodes] = {}
       @record.service_resources.each do |r|
         st = ServiceTemplate.find_by(:id => r.resource_id)
-        @sb[:stc_nodes][r.resource_id] = st.service_template_catalog_id ? st.service_template_catalog_id : "Unassigned" unless st.nil?
+        @sb[:stc_nodes][r.resource_id] = st.service_template_catalog_id || "Unassigned" unless st.nil?
       end
     end
     if params[:action] == "x_show"
@@ -1745,8 +1757,10 @@ class CatalogController < ApplicationController
 
   def fetch_dialog(playbook_details, dialog_id, key)
     return nil if dialog_id.nil?
+
     dialog = Dialog.find_by(:id => dialog_id)
     return nil if dialog.nil?
+
     playbook_details[key][:dialog] = dialog.name
     playbook_details[key][:dialog_id] = dialog.id
   end
@@ -1770,6 +1784,7 @@ class CatalogController < ApplicationController
            x_tree[:open_nodes].include?(parents.last[:id])
       parents.reverse_each do |p|
         next if p.nil?
+
         p_node = x_build_node_id(p)
         unless x_tree[:open_nodes].include?(p_node)
           x_tree[:open_nodes].push(p_node)
@@ -1880,12 +1895,6 @@ class CatalogController < ApplicationController
     if @tagging
       presenter.hide(:toolbar).show(:paging_div)
       action_url = x_active_tree == :ot_tree ? "ot_tags_edit" : "st_tags_edit"
-      locals = {
-        :record_id           => @edit[:object_ids][0],
-        :action_url          => action_url,
-        :force_cancel_button => true,
-        :ajax_buttons        => true
-      }
       presenter.show(:form_buttons_div).remove_paging
     elsif record_showing || @in_a_form || @sb[:buttons_node] ||
           (@pages && (@items_per_page == ONE_MILLION || @pages[:items] == 0))
@@ -1893,7 +1902,7 @@ class CatalogController < ApplicationController
         presenter.hide(:toolbar).show(:paging_div)
         # incase it was hidden for summary screen, and incase there were no records on show_list
         presenter.remove_paging
-        if (action == 'at_st_new' && ansible_playbook?) || (action == 'st_catalog_new' || action == 'st_catalog_edit' || action == 'copy_catalog')
+        if (action == 'at_st_new' && ansible_playbook?) || %w[st_catalog_new st_catalog_edit copy_catalog].include?(action)
           presenter.hide(:form_buttons_div)
         else
           presenter.show(:form_buttons_div)
@@ -1983,6 +1992,7 @@ class CatalogController < ApplicationController
 
   def dialog_catalog_check
     return unless @edit[:new][:display] && (@edit[:new][:dialog_id].nil? || @edit[:new][:dialog_id].to_i.zero?)
+
     add_flash(_("Dialog has to be set if Display in Catalog is chosen"), :error)
   end
 
@@ -2004,6 +2014,7 @@ class CatalogController < ApplicationController
     if params[:button] == 'reset'
       id = params[:id] if params[:id]
       return unless load_edit("#{session[:tag_db]}_edit_tags__#{id}", 'replace_cell__explorer')
+
       @object_ids = @edit[:object_ids]
       session[:tag_db] = @tagging = @edit[:tagging]
     else
@@ -2025,7 +2036,7 @@ class CatalogController < ApplicationController
 
   def breadcrumbs_options
     {
-      :breadcrumbs       => [
+      :breadcrumbs => [
         {:title => _("Services")},
         {:title => _("Catalogs")},
       ],
