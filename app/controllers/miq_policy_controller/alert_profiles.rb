@@ -7,6 +7,7 @@ module MiqPolicyController::AlertProfiles
 
   def alert_profile_edit_cancel
     return unless alert_profile_edit_load_edit
+
     @sb[:action] = @edit = nil
     if @alert_profile && @alert_profile.id.blank?
       add_flash(_("Add of new Alert Profile was cancelled by the user"))
@@ -49,7 +50,7 @@ module MiqPolicyController::AlertProfiles
     begin
       alerts.each { |a| alert_profile.remove_member(MiqAlert.find(a)) unless mems.include?(a.id) } # Remove any alerts no longer in the members list box
       mems.each_key { |m| alert_profile.add_member(MiqAlert.find(m)) unless current.include?(m) }  # Add any alerts not in the set
-    rescue => bang
+    rescue StandardError => bang
       add_flash(_("Error during 'Alert Profile %{params}': %{message}") %
         {:params => params[:button], :message => bang.message}, :error)
     end
@@ -57,7 +58,6 @@ module MiqPolicyController::AlertProfiles
     flash_key = params[:button] == "save" ? _("Alert Profile \"%{name}\" was saved") : _("Alert Profile \"%{name}\" was added")
     add_flash(flash_key % {:name => @edit[:new][:description]})
     alert_profile_get_info(MiqAlertSet.find(alert_profile.id))
-    alert_profile_sync_provider(current, mems.keys)
     @sb[:action] = @edit = nil
     self.x_node = @new_alert_profile_node = "xx-#{alert_profile.mode}_ap-#{alert_profile.id}"
     get_node_info(@new_alert_profile_node)
@@ -74,6 +74,7 @@ module MiqPolicyController::AlertProfiles
     # Load @edit/vars for other buttons
     id = params[:id] || 'new'
     return false unless load_edit("alert_profile_edit__#{id}", "replace_cell__explorer")
+
     alert_profile_load
     true
   end
@@ -86,9 +87,11 @@ module MiqPolicyController::AlertProfiles
       alert_profile_edit_reset
     when 'save', 'add'
       return unless alert_profile_edit_load_edit
+
       alert_profile_edit_save_add
     when 'move_right', 'move_left', 'move_allleft'
       return unless alert_profile_edit_load_edit
+
       alert_profile_edit_move
     end
   end
@@ -110,7 +113,6 @@ module MiqPolicyController::AlertProfiles
         add_flash(_("At least one Selection must be checked"), :error)
       end
       unless flash_errors?
-        alert_profile_sync_provider
         alert_profile_assign_save
         add_flash(_("Alert Profile \"%{alert_profile}\" assignments successfully saved") %
           {:alert_profile => @alert_profile.description})
@@ -135,7 +137,6 @@ module MiqPolicyController::AlertProfiles
     else
       alert_profiles.push(params[:id])
       alert_profile_get_info(MiqAlertSet.find(params[:id]))
-      alert_profile_sync_provider
     end
     process_alert_profiles(alert_profiles, "destroy") unless alert_profiles.empty?
     nodes = x_node.split("_")
@@ -147,6 +148,7 @@ module MiqPolicyController::AlertProfiles
 
   def alert_profile_field_changed
     return unless load_edit("alert_profile_edit__#{params[:id]}", "replace_cell__explorer")
+
     @alert_profile = @edit[:alert_profile_id] ? MiqAlertSet.find(@edit[:alert_profile_id]) : MiqAlertSet.new
 
     @edit[:new][:description] = params[:description].presence if params[:description]
@@ -191,12 +193,14 @@ module MiqPolicyController::AlertProfiles
     return true if @assign[:new][:assign_to].blank?
     return true if @assign[:new][:assign_to] == "enterprise"
     return true if @assign[:new][:assign_to].ends_with?("-tags") && @assign[:new][:cat].blank?
+
     false
   end
 
   # Build the assign objects selection tree
   def alert_profile_build_obj_tree
     return nil if alert_profile_get_assign_to_objects_empty?
+
     if @assign[:new][:assign_to] == "ems_folder"
       instantiate_tree("TreeBuilderEmsFolders", :ems_folders_tree,
                        @assign[:new][:objects].collect { |f| "EmsFolder_#{f}" })
@@ -322,29 +326,5 @@ module MiqPolicyController::AlertProfiles
     @alert_profile_alerts = @alert_profile.miq_alerts.sort_by { |a| a.description.downcase }
     @right_cell_text = _("Alert Profile \"%{name}\"") % {:name => alert_profile.description}
     @right_cell_div = "alert_profile_details"
-  end
-
-  def alert_profile_sync_provider(old_alerts = nil, new_alerts = nil)
-    if @alert_profile.mode == "MiddlewareServer"
-      if old_alerts.nil? && new_alerts.nil?
-        operation = :update_assignments
-        old_alerts = new_alerts = @alert_profile.miq_alerts.collect(&:id)
-      else
-        operation = :update_alerts
-      end
-      assigned = @alert_profile.get_assigned_tos
-      MiqQueue.put(
-        :class_name  => "ManageIQ::Providers::Hawkular::MiddlewareManager",
-        :method_name => "update_alert_profile",
-        :args        => {
-          :operation       => operation,
-          :profile_id      => @alert_profile.id,
-          :old_alerts      => old_alerts,
-          :new_alerts      => new_alerts,
-          :old_assignments => assigned ? assigned[:objects] : nil,
-          :new_assignments => @assign ? @assign[:new] : nil
-        }
-      )
-    end
   end
 end

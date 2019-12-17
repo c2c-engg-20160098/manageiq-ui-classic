@@ -1624,6 +1624,7 @@ Rails.application.routes.draw do
         download_summary_pdf
         index
         new
+        protect
         show
         show_list
         tagging_edit
@@ -1633,8 +1634,9 @@ Rails.application.routes.draw do
         button
         create
         form_field_changed
-        quick_search
         listnav_search_selected
+        protect
+        quick_search
         sections_field_changed
         show
         show_list
@@ -1727,6 +1729,7 @@ Rails.application.routes.draw do
         edit
         index
         new
+        protect
         show
         show_list
         tagging_edit
@@ -1737,8 +1740,9 @@ Rails.application.routes.draw do
         create
         dynamic_checkbox_refresh
         form_field_changed
-        quick_search
         listnav_search_selected
+        protect
+        quick_search
         sections_field_changed
         show
         show_list
@@ -1791,6 +1795,7 @@ Rails.application.routes.draw do
         edit
         index
         new
+        protect
         remove_interface_select
         show
         show_list
@@ -1804,6 +1809,7 @@ Rails.application.routes.draw do
         create
         form_field_changed
         listnav_search_selected
+        protect
         quick_search
         remove_interface
         remove_interface_select
