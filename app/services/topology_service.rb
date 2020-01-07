@@ -1,8 +1,14 @@
 class TopologyService
   def initialize(provider_id = nil)
     provider_class = self.class.instance_variable_get(:@provider_class)
+    # C2C code for topology according to tenant
+    tenant_id = User.current_user.current_tenant.id
     # If the provider ID is not set, the topology needs to be generated for all the providers
-    @providers = provider_id ? provider_class.where(:id => provider_id) : provider_class.all
+    if tenant_id.to_s != "1"
+      @providers = provider_id ? provider_class.where(:id => provider_id) : provider_class.where(:tenant_id => tenant_id)
+    else
+      @providers = provider_id ? provider_class.where(:id => provider_id) : provider_class.all
+    end
   end
 
   def build_link(source, target)
